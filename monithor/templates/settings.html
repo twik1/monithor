@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<h1>Settings</h1>
+<form action="" method="post">
+    {% csrf_token %}
+    <label for="setting1">Setting 1:</label>
+    <input type="text" id="setting1" name="setting1">
+    <br>
+    <label for="setting2">Setting 2:</label>
+    <input type="text" id="setting2" name="setting2">
+    <br>
+    <button type="submit">Save</button>
+</form>
+{% endblock %}
