@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
-    <h3>Known MAC addresse in your network</h3>
+    <h3>Known MAC addresses in your network</h3>
     <table class="table table-striped table-condensed table-responsive"
             id="table"
 			data-toggle="table"
@@ -25,7 +25,13 @@
             {% for row in kmaclist %}
             <tr>
                 <td>{{ row.id }}</td>
-                <td>{{ row.count_int }}</td>
+                <td align="center">
+                {% if row.count_int == 0 %}
+                    <img src="{% static 'red_smaller.png' %}">
+                {% else %}
+                    <img src="{% static 'green_smaller.png' %}">
+                {% endif %}
+                </td>
                 <td>{{ row.mac_text }}</td>
                 <td>{{ row.mac_inf_text }}</td>
                 <td>{{ row.device_text }}</td>
