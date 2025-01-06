@@ -171,6 +171,7 @@ html { height: 100%;}
     top: 0;
 }
 /*Fontawesome icons*/
+/*
 .nav.sidebar-nav li a::before {
     font-family: fontawesome;
     content: "\f12e";
@@ -221,6 +222,7 @@ a[href*="#followme"]::before {
   content: "\f099" !important;
   color: #0084b4;
 }
+*/
 /*-------------------------------*/
 /*       Hamburger-Cross         */
 /*-------------------------------*/

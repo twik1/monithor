@@ -6,6 +6,9 @@ from django.http import HttpResponse
 def settings_view(request):
     return render(request, 'settings.html')
 
+def about_view(request):
+    return render(request, 'about.html')
+
 def index_view(request):
     kmaclist = list(Known_mac.objects.values())
     return render(request, 'index.html', {'kmaclist':kmaclist})
