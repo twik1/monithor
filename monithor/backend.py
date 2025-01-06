@@ -7,19 +7,22 @@ from easysnmp import Session, EasySNMPTimeoutError, EasySNMPUnknownObjectIDError
 import threading
 import argparse
 import datetime
-from monithor.models import Known_mac, Unknown_mac
+from monithor.models import Known_mac, Unknown_mac, Macinfo, Source, Notification
 import requests
 from django.utils import timezone
 
 def pushover_send(msg):
-    conn = http.client.HTTPSConnection("api.pushover.net:443")
-    conn.request("POST", "/1/messages.json",
+    try:
+        conn = http.client.HTTPSConnection("api.pushover.net:443")
+        conn.request("POST", "/1/messages.json",
                  urllib.parse.urlencode({
-                     "token": "a2mspmegw65x9bhrjg2pt32it99jjf",
-                     "user": "uBsZQKwmSrNQaFW1zpxiF2V2H1p3sn",
+                     "token": Notification.objects.first().token_text,
+                     "user": Notification.objects.first().user_text,
                      "message": msg,
                  }), {"Content-type": "application/x-www-form-urlencoded"})
-    conn.getresponse()
+        conn.getresponse()
+    except Exception as e:
+        print('pushover failed {}'.format(e))
 
 
 def threaded(fn):
@@ -38,8 +41,9 @@ class Kmac:
 
     def set(self, list1):
         for value in list1:
-            row = Known_mac.objects.get(mac_text=value)
-            self.pdict[value] = row.count
+            row = Known_mac.objects.get(mac_text=value['mac_text'])
+            print(row.count_int)
+            self.pdict[value['mac_text']] = row.count_int
 
     def update(self, list1):
         #update the once that are present
@@ -50,7 +54,7 @@ class Kmac:
                     print('{} present'.format(value))
                     row = Known_mac.objects.get(mac_text=value)
                     row.last_seen_date = timezone.now()
-                    row.count = 3
+                    row.count_int = 3
                     row.save()
                 self.pdict[value] = 3
                 retval = True
@@ -79,8 +83,7 @@ class Umac:
     def get_info_of_mac(self, mac):
         try:
             ret = requests.get(
-                'https://api.maclookup.app/v2/macs/{}?apiKey=01jegdcdmb9j3svnjx67bygywx01jegddpx3pvw0mb9dft8zxkz7xidhmeyltcx9'.format(
-                    mac))
+                'https://api.maclookup.app/v2/macs/{}?apiKey={}'.format(mac, Macinfo.objects.first().token_mac_text))
             if ret.json()['success']:
                 if ret.json()['found']:
                     macinfo = ret.json()['company']
@@ -185,13 +188,15 @@ class SNMP:
     def fetch(self):
         newmac = []
         leftover1 = []
+        oid = []
         kmac = Kmac()
         umac = Umac()
         kmac.set(list(Known_mac.objects.values()))
         umac.set(list(Unknown_mac.objects.values()))
         #oid = ['.1.3.6.1.2.1.4.35.1.4']
-        oid = ['.1.3.6.1.2.1.4.22.1.2']
-        session = Session(hostname='192.168.0.1', community='public', timeout=1, version=2, retries=3)
+        #oid = ['.1.3.6.1.2.1.4.22.1.2']
+        oid.append(Source.objects.first().oid_text)
+        session = Session(hostname=Source.objects.first().ip_text, community='public', timeout=1, version=2, retries=3)
         while self.running:
             print('scanning...')
             scanned_maclist = []
