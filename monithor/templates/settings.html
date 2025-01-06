@@ -2,4 +2,123 @@
 
 {% block content %}
     <h3>Settings</h3>
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-5"></div>
+            <div class="col-md-3">
+                <h5>SNMP configuration</h5>
+                <br>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+        <form class="form-horizontal" role="form" method="POST" action="{% url 'settings' %}">
+            {% csrf_token %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>SNMP node IP address</td>
+                        <td><input type="text" name="snmp_address" class="form-control" value="{{ source.ip_text }}" id="snmp_address" required></td>
+                    </tr>
+                    <tr>
+                        <td>OID</td>
+                        <td><input type="text" name="oid" class="form-control" value="{{ source.oid_text }}" id="oid" required></td>
+                    </tr>
+                    <tr>
+                        <td>Request interval (sec)</td>
+                        <td><input type="text" name="interval" class="form-control" value="{{ source.interval_int }}" id="interval" required></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="row" style="padding-top: 1rem">
+                <button type="submit" class="btn btn-success">Save</button>
+            </div>
+        </form>
+        <!--
+            <div class="alert alert-danger">
+                <strong><i class="fas fa-times fa-lg"></i> </strong>No contact with backend
+            </div>
+        -->
+        <hr>
+        <div class="row">
+            <div class="col-md-5"></div>
+            <div class="col-md-3">
+                <h5>MacLookUp configuration</h5>
+                <br>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+
+        <form class="form-horizontal" role="form" method="POST" action="{% url 'settings' %}">
+            {% csrf_token %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                     <tr>
+                        <td> APIkey </td>
+                        <td><input type="text" name="apikey" class="form-control" value="{{ source.token_mac_text }}" id="apikey" required></td>
+                     </tr>
+                 </tbody>
+            </table>
+            <div class="row" style="padding-top: 1rem">
+                <button type="submit" class="btn btn-success">Save</button>
+            </div>
+        </form>
+        <br>
+        <!--
+            <div class="alert alert-danger">
+                <strong><i class="fas fa-times fa-lg"></i> </strong>Unable to reach database
+            </div>
+        -->
+        <div class="row">
+            <div class="col-md-5"></div>
+            <div class="col-md-3">
+                <h5>Pushover configuration</h5>
+                <br>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+
+        <form class="form-horizontal" role="form" method="POST" action="{% url 'settings' %}">
+            {% csrf_token %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                     <tr>
+                        <td> Token </td>
+                        <td><input type="text" name="token" class="form-control" value="{{ source.token_text }}" id="token" required></td>
+                     </tr>
+                     <tr>
+                        <td> User </td>
+                        <td><input type="text" name="user" class="form-control" value="{{ source.user_text }}" id="user" required></td>
+                     </tr>
+                 </tbody>
+            </table>
+            <div class="row" style="padding-top: 1rem">
+                <button type="submit" class="btn btn-success">Save</button>
+            </div>
+        </form>
+        <br>
+        <!--
+            <div class="alert alert-danger">
+                <strong><i class="fas fa-times fa-lg"></i> </strong>Unable to reach database
+            </div>
+        -->
+    </div>
 {% endblock content %}
