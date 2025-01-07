@@ -12,8 +12,8 @@ class Macinfo(models.Model):
 class Source(models.Model):
     ip_text = models.CharField(max_length=20)
     oid_text = models.CharField(max_length=150)
+    community_text = models.CharField(max_length=50)
     interval_int = models.IntegerField(default=0)
-
     def __str__(self):
         return (self.ip_text, self.oid_text)
 
@@ -35,3 +35,10 @@ class Unknown_mac(models.Model):
     last_seen_date = models.DateTimeField("last seen")
     def __str__(self):
         return (self.mac_text)
+
+class Status_msg(models.Model):
+    pushover_text = models.CharField(max_length=256)
+    maclookup_text = models.CharField(max_length=256)
+    snmp_text = models.CharField(max_length=256)
+    def __str__(self):
+        return (self.snmp_text)
