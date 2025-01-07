@@ -2,4 +2,18 @@
 
 {% block content %}
     <h3>About monithor</h3>
+<div class="text-wrap">
+Initiallly this application was without UI but it was difficult to maintain the lists of known and unknown mac addresses.
+Finally coosed to try  something I haven't tried before, Django.
+It was an interesting journey :-)
+    <hr>
+To use this tool you would need a network node (preferably in the center of your network) that responds to SNMP.
+This is needed to collect the mac addresses active in your network.
+You would also need an account at maclookup (https://my.maclookup.app/login) to make it easier to identify unknown mac addresses.
+An account with pushover (https://pushover.net/login) is also needed to send you notifications when new mac addresses show up in your network.
+    <br>
+Keep your network safe!
+    <hr>
+twik
+</div>
 {% endblock content %}
