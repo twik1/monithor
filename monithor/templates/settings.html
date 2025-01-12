@@ -31,6 +31,10 @@
                         <td><input type="text" name="oid" class="form-control" value="{{ source.oid_text }}" id="oid" required></td>
                     </tr>
                     <tr>
+                        <td>Community</td>
+                        <td><input type="text" name="community" class="form-control" value="{{ source.community_text }}" id="community" required></td>
+                    </tr>
+                    <tr>
                         <td>Request interval (sec)</td>
                         <td><input type="text" name="interval" class="form-control" value="{{ source.interval_int }}" id="interval" required></td>
                     </tr>
@@ -40,11 +44,12 @@
                 <button type="submit" class="btn btn-success">Save</button>
             </div>
         </form>
-        <!--
+        <br>
+        {% if source.snmp_text != '' %}
             <div class="alert alert-danger">
-                <strong><i class="fas fa-times fa-lg"></i> </strong>No contact with backend
+                <strong><i class="fas fa-times fa-lg"></i> </strong>{{ source.snmp_text }}
             </div>
-        -->
+        {% endif %}
         <hr>
         <div class="row">
             <div class="col-md-5"></div>
@@ -76,11 +81,12 @@
             </div>
         </form>
         <br>
-        <!--
+        {% if source.maclookup_text != '' %}
             <div class="alert alert-danger">
-                <strong><i class="fas fa-times fa-lg"></i> </strong>Unable to reach database
+                <strong><i class="fas fa-times fa-lg"></i> </strong>{{ source.maclookup_text }}
             </div>
-        -->
+        {% endif %}
+        <hr>
         <div class="row">
             <div class="col-md-5"></div>
             <div class="col-md-3">
@@ -115,10 +121,11 @@
             </div>
         </form>
         <br>
-        <!--
+        {% if source.pushover_text != '' %}
             <div class="alert alert-danger">
-                <strong><i class="fas fa-times fa-lg"></i> </strong>Unable to reach database
+                <strong><i class="fas fa-times fa-lg"></i> </strong>{{ source.pushover_text }}
             </div>
-        -->
+        {% endif %}
+        <hr>
     </div>
 {% endblock content %}

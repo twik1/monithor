@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.forms.models import model_to_dict
-from monithor.models import Known_mac, Unknown_mac, Source, Notification, Macinfo
-import json
-from django.http import HttpResponse
+
+from monithor.backend import Umac, pushover_send
+from monithor.models import Known_mac, Unknown_mac, Source, Notification, Macinfo, Status_msg
+from monithorsite.wsgi import snmp
+
 
 def settings_view(request):
     valuedict = {}
@@ -10,49 +12,32 @@ def settings_view(request):
     if request.method == 'POST':
         data = request.POST
         if 'snmp_address' in data:
-            if Source.objects.count() < 1:
-                row = Source(ip_text=data['snmp_address'], oid_text=data['oid'], interval_int=int(data['interval']))
-                row.save()
-            else:
-                row = Source.objects.first()
-                row.ip_text = data['snmp_address']
-                row.oid_text = data['oid']
-                row.interval_int = int(data['interval'])
-                row.save()
+            row = Source.objects.first()
+            row.ip_text = data['snmp_address']
+            row.oid_text = data['oid']
+            row.community_text = data['community']
+            row.interval_int = int(data['interval'])
+            row.save()
+            snmp.fetch_mac()
         if 'apikey' in data:
-            if Macinfo.objects.count() < 1:
-                row = Macinfo(token_mac_text=data['apikey'])
-                row.save()
-            else:
-                row = Macinfo.objects.first()
-                row.token_mac_text = data['apikey']
-                row.save()
+            row = Macinfo.objects.first()
+            row.token_mac_text = data['apikey']
+            row.save()
+            Umac.get_info_of_mac('5c:aa:fd:9f:b1:38')
         if 'token' in data:
-            if Notification.objects.count() < 1:
-                row = Notification(token_text=data['token'], user_text=data['user'])
-                row.save()
-            else:
-                row = Notification.objects.first()
-                row.token_text = data['token']
-                row.user_text = data['user']
-                row.save()
+            print(data)
+            row = Notification.objects.first()
+            row.token_text = data['token']
+            row.user_text = data['user']
+            row.save()
+            pushover_send('test')
+        # ToDo test the setting before reloading the page
 
-    '''Make sure we handle an empty database'''
-    if Source.objects.count() < 1:
-        dsource = {'ip_text':'', 'oid_text':'', 'interval_int':0}
-    else:
-        dsource = model_to_dict(Source.objects.first())
-
-    if Notification.objects.count() < 1:
-        dnotifi = {'token_text':'', 'user_text':''}
-    else:
-        dnotifi = model_to_dict(Notification.objects.first())
-
-    if Macinfo.objects.count() < 1:
-        dmacinf = {'token_mac_text':''}
-    else:
-        dmacinf = model_to_dict(Macinfo.objects.first())
-    valuedict = {**dsource, **dnotifi, **dmacinf}
+    dsource = model_to_dict(Source.objects.first())
+    dnotifi = model_to_dict(Notification.objects.first())
+    dmacinf = model_to_dict(Macinfo.objects.first())
+    dstatus = model_to_dict(Status_msg.objects.first())
+    valuedict = {**dsource, **dnotifi, **dmacinf, **dstatus}
 
     return render(request, 'settings.html', {'source':valuedict})
 

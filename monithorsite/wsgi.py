@@ -18,4 +18,4 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'monithorsite.settings')
 application = get_wsgi_application()
 
 # ToDo comment out for now
-#snmp = SNMP(Source.objects.first().interval_int)
+snmp = SNMP()

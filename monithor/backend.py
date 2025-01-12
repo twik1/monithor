@@ -7,11 +7,14 @@ from easysnmp import Session, EasySNMPTimeoutError, EasySNMPUnknownObjectIDError
 import threading
 import argparse
 import datetime
-from monithor.models import Known_mac, Unknown_mac, Macinfo, Source, Notification
+
+from monithor.models import Known_mac, Unknown_mac, Macinfo, Source, Notification, Status_msg
 import requests
 from django.utils import timezone
 
 def pushover_send(msg):
+    print("tesssst")
+    notify = Status_msg.objects.first()
     try:
         conn = http.client.HTTPSConnection("api.pushover.net:443")
         conn.request("POST", "/1/messages.json",
@@ -20,9 +23,15 @@ def pushover_send(msg):
                      "user": Notification.objects.first().user_text,
                      "message": msg,
                  }), {"Content-type": "application/x-www-form-urlencoded"})
-        conn.getresponse()
+        res = conn.getresponse()
+        if res.status != 200:
+            notify.pushover_text = "Pushover failed with HTTP response {}".format(res.status)
+        else:
+            notify.pushover_text = ""
     except Exception as e:
-        print('pushover failed {}'.format(e))
+        print("failed")
+        notify.pushover_text = "Pushover failed {}".format(e)
+    notify.save()
 
 
 def threaded(fn):
@@ -80,25 +89,27 @@ class Umac:
     def __init__(self):
         self.plist = []
 
+    @classmethod
     def get_info_of_mac(self, mac):
+        msg = Status_msg.objects.first()
         try:
             ret = requests.get(
                 'https://api.maclookup.app/v2/macs/{}?apiKey={}'.format(mac, Macinfo.objects.first().token_mac_text))
+            print(ret.json())
             if ret.json()['success']:
                 if ret.json()['found']:
                     macinfo = ret.json()['company']
                 else:
                     macinfo = 'Not found'
+                msg.maclookup_text = ""
             else:
-                macinfo = 'Request failed1'
+                macinfo = 'Failed'
+                msg.maclookup_text = "Maclookup request failed: {}".format(ret.json()['error'])
         except Exception as e:
-            print(e)
-            macinfo = 'Request failed2'
+            macinfo = 'Failed'
+            msg.maclookup_text = "Maclookup request failed {}".format(e)
+        msg.save()
         return macinfo
-        #row = Unknown_mac(mac_text=mac, mac_inf_text=macinfo, first_seen_date=timezone.now(),
-                          #last_seen_date=timezone.now())
-        #row.save()
-        #print('Warning an unknown mac has joined the network {}, {}'.format(mac, macinfo))
 
     def set(self, list1):
         for row in list1:
@@ -122,11 +133,34 @@ class Umac:
         return retlist
 
 class SNMP:
-    def __init__(self, scantime):
+    def __init__(self):
         self.running = True
-        self.scantime = scantime
         self.cmaclist = []
         self.cdmaclist = {}
+        ''' Deal with an empty database '''
+        if Source.objects.count() < 1:
+            dsource = {'ip_text': '', 'oid_text': '', 'interval_int': 0, 'community_text': ''}
+            row = Source(ip_text=dsource['ip_text'], oid_text=dsource['oid_text'], interval_int=dsource['interval_int'],
+                         community_text=dsource['community_text'])
+            row.save()
+
+        if Notification.objects.count() < 1:
+            dnotifi = {'token_text': '', 'user_text': ''}
+            row = Notification(token_text=dnotifi['token_text'], user_text=dnotifi['user_text'])
+            row.save()
+
+        if Macinfo.objects.count() < 1:
+            dmacinf = {'token_mac_text': ''}
+            row = Macinfo(token_mac_text=dmacinf['token_mac_text'])
+            row.save()
+
+        if Status_msg.objects.count() < 1:
+            status = {'pushover_text': '', 'maclookup_text': '', 'snmp_text': ''}
+            row = Status_msg(pushover_text=status['pushover_text'], maclookup_text=status['maclookup_text'],
+                             snmp_text=status['snmp_text'])
+            row.save()
+
+        self.scantime = Source.objects.first().interval_int
         self.thread = self.fetch()
 
     def format(self, macstring):
@@ -144,80 +178,76 @@ class SNMP:
             return False
         return True
 
-    def comp_lists(self, list1, list2):
-        only_list1 = []
-        only_list2 = []
-        for item in list1:
-            if not item in list2:
-                only_list1.append(item)
-        for item in list2:
-            if not item in list1:
-                only_list2.append(item)
-        return(only_list1, only_list2)
 
-    def comp_dict_list(self, dict1, list2, mode):
-        dellist = []
-        for key in dict1:
-            if not key in list2:
-                if dict1[key] < 1:
-                    dellist.append(key)
-                else:
-                    dict1[key] -= 1
-                    #print('{} has been decremented'.format(key))
-            else:
-                dict1[key] = 3
-                #print('{} has been updated'.format(key))
-        for entry in list2:
-            if not entry in dict1 and mode:
-                dict1[entry] = 3
-                # Update db with present
-                print('{} has been added, {}'.format(entry, datetime.datetime.now()))
-        for key in dellist:
-            del dict1[entry]
-            # Update db with removed
-            print('{} has been removed, {}'.format(entry, datetime.datetime.now()))
-        return dict1
+    def fetch_mac(self):
+        ''' We should not fetch if function turned off '''
+        if Source.objects.first().interval_int == 0:
+            msg = Status_msg.objects.first()
+            msg.snmp_text = "Fetching mac address turned off"
+            msg.save()
+            return []
 
-    def list_conv(self, db_result):
-        clist = []
-        for row in db_result:
-            clist.append(row['mac_text'])
-        return clist
+        ''' Need special treatment since it terminates if parameters are wrong'''
+        ipv4re = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+        oidre = re.compile("^\..*\d{1,3}$")
+
+        ipaddress = Source.objects.first().ip_text
+        oid = Source.objects.first().oid_text
+        community = Source.objects.first().community_text
+        msg = Status_msg.objects.first()
+        res = []
+        if not ipv4re.match(ipaddress):
+            msg.snmp_text = "Ip-address v4 failed validation {}".format(ipaddress)
+        elif not oidre.match(oid):
+            msg.snmp_text = "OID failed validation {}".format(oid)
+        else:
+            session =  Session(hostname=ipaddress, community=community, timeout=1, version=2, retries=3)
+            try:
+                res = session.walk(oid)
+                msg.snmp_text = ""
+            except easysnmp.exceptions.EasySNMPTimeoutError:
+                msg.snmp_text = "SNMP timeout"
+            except easysnmp.exceptions.EasySNMPError:
+                msg.snmp_text = "SNMP error"
+        msg.save()
+        return res
 
     @threaded
     def fetch(self):
         newmac = []
         leftover1 = []
-        oid = []
         kmac = Kmac()
         umac = Umac()
         kmac.set(list(Known_mac.objects.values()))
         umac.set(list(Unknown_mac.objects.values()))
-        #oid = ['.1.3.6.1.2.1.4.35.1.4']
         #oid = ['.1.3.6.1.2.1.4.22.1.2']
-        oid.append(Source.objects.first().oid_text)
-        session = Session(hostname=Source.objects.first().ip_text, community='public', timeout=1, version=2, retries=3)
         while self.running:
-            print('scanning...')
             scanned_maclist = []
-            try:
-                res = session.walk(oid)
-            except easysnmp.exceptions.EasySNMPTimeoutError:
-                print('SNMP timeout')
-                continue
-            except easysnmp.exceptions.EasySNMPError:
-                print('SNMP error')
-                continue
-            # scanned_maclist is the list of the mac address found at a single scanning
+            res = self.fetch_mac()
             for row in res:
                 if self.validate(row.value.encode('latin-1').hex()):
                     scanned_maclist.append(self.format(row.value.encode('latin-1').hex()))
-            print(scanned_maclist)
             leftover1 = kmac.update(scanned_maclist)
             newmac = umac.update(leftover1)
             #print(':{}:'.format(newmac))
             #pushover_send('Warning an unknown mac has joined the network {}'.format(mac))
 
+            ''' Handle 0 as scantime'''
+            self.scantime = Source.objects.first().interval_int
+            print("scantime:{}".format(self.scantime))
+            if self.scantime == 0:
+                ''' 0 means scanning turned off '''
+                msg = Status_msg.objects.first()
+                msg.snmp_text = "Fetching mac address turned off"
+                msg.save()
+                while self.scantime == 0:
+                    ''' Service turned off '''
+                    self.scantime = Source.objects.first().interval_int
+                    time.sleep(3)
+                ''' Starting again '''
+                msg = Status_msg.objects.first()
+                msg.snmp_text = ""
+                msg.save()
             time.sleep(self.scantime)
 
     def join(self):
