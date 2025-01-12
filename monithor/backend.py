@@ -13,7 +13,6 @@ import requests
 from django.utils import timezone
 
 def pushover_send(msg):
-    print("tesssst")
     notify = Status_msg.objects.first()
     try:
         conn = http.client.HTTPSConnection("api.pushover.net:443")
@@ -29,7 +28,6 @@ def pushover_send(msg):
         else:
             notify.pushover_text = ""
     except Exception as e:
-        print("failed")
         notify.pushover_text = "Pushover failed {}".format(e)
     notify.save()
 
@@ -51,7 +49,6 @@ class Kmac:
     def set(self, list1):
         for value in list1:
             row = Known_mac.objects.get(mac_text=value['mac_text'])
-            print(row.count_int)
             self.pdict[value['mac_text']] = row.count_int
 
     def update(self, list1):
@@ -60,7 +57,6 @@ class Kmac:
         for value in list1:
             if value in self.pdict:
                 if self.pdict[value] < 1:
-                    print('{} present'.format(value))
                     row = Known_mac.objects.get(mac_text=value)
                     row.last_seen_date = timezone.now()
                     row.count_int = 3
@@ -75,13 +71,11 @@ class Kmac:
                 if self.pdict[key] == 0:
                     continue
                 if self.pdict[key] == 1:
-                    print('{} removed'.format(key))
                     self.pdict[key] = 0
                     row = Known_mac.objects.get(mac_text=key)
                     row.count = 0
                     row.save()
                 if self.pdict[key] > 1:
-                    print('{} decremented'.format(key))
                     self.pdict[key] -= 1
         return retlist
 
@@ -95,7 +89,7 @@ class Umac:
         try:
             ret = requests.get(
                 'https://api.maclookup.app/v2/macs/{}?apiKey={}'.format(mac, Macinfo.objects.first().token_mac_text))
-            print(ret.json())
+            print("|{}|".format(Macinfo.objects.first().token_mac_text))
             if ret.json()['success']:
                 if ret.json()['found']:
                     macinfo = ret.json()['company']
@@ -114,7 +108,7 @@ class Umac:
     def set(self, list1):
         for row in list1:
             self.plist.append(row['mac_text'])
-        print(self.plist)
+        #print(self.plist)
 
     def update(self, list1):
         retlist = []
@@ -128,7 +122,7 @@ class Umac:
                 macinfo = self.get_info_of_mac(value)
                 row = Unknown_mac(mac_text=value, mac_inf_text=macinfo, first_seen_date=timezone.now(), last_seen_date=timezone.now())
                 row.save()
-                print('Adding mac to db {}'.format(value))
+                #print('Adding mac to db {}'.format(value))
                 self.plist.append(value)
         return retlist
 
@@ -168,13 +162,13 @@ class SNMP:
 
     def validate(self, macstring):
         if macstring == '000000000000':
-            print('False mac 1')
+            #print('False mac 1')
             return False
         if macstring == 'ffffffffffff':
-            print('False mac 2')
+            #print('False mac 2')
             return False
         if (int(macstring[:2], 16) % 2):
-            print('False mac 3')
+            #print('False mac 3')
             return False
         return True
 
@@ -234,7 +228,6 @@ class SNMP:
 
             ''' Handle 0 as scantime'''
             self.scantime = Source.objects.first().interval_int
-            print("scantime:{}".format(self.scantime))
             if self.scantime == 0:
                 ''' 0 means scanning turned off '''
                 msg = Status_msg.objects.first()
