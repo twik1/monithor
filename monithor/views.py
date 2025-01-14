@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.forms.models import model_to_dict
-
+from monithor.maclists import Maclists
 #from monithor.backend import pushover_send
-from monithor.models import Known_mac, Unknown_mac, Source, Notification, Macinfo, Status_msg
+from monithor.models import Maclist, Source, Notification, Macinfo, Status_msg
 #from monithorsite.wsgi import snmp
 
 
@@ -45,7 +45,7 @@ def about_view(request):
     return render(request, 'about.html')
 
 def index_view(request):
-    kmaclist = list(Known_mac.objects.values())
+    kmaclist = list(Maclists.get_known())
     return render(request, 'index.html', {'kmaclist':kmaclist})
 
 def unhandled_view(request):
@@ -54,10 +54,6 @@ def unhandled_view(request):
         notes = data['notes']
         id = data['id']
         #ToDo Add fault handling
-        row = Unknown_mac.objects.get(id=int(id))
-        irow = Known_mac(mac_text=row.mac_text, mac_inf_text=row.mac_inf_text, first_seen_date=row.first_seen_date,
-                  last_seen_date=row.last_seen_date, device_text=notes)
-        irow.save()
-        Unknown_mac.objects.filter(id=int(id)).delete()
-    umaclist = list(Unknown_mac.objects.values())
+        Maclists.change_to_known(id, notes)
+    umaclist = list(Maclists.get_unknown())
     return render(request, 'unhandled.html', {'umaclist':umaclist})

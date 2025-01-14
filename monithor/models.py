@@ -17,22 +17,14 @@ class Source(models.Model):
     def __str__(self):
         return (self.ip_text, self.oid_text)
 
-class Known_mac(models.Model):
+class Maclist(models.Model):
     mac_text = models.CharField(max_length=20)
     mac_inf_text = models.CharField(max_length=100)
     device_text = models.CharField(max_length=100)
     count_int = models.IntegerField(default=0)
     first_seen_date = models.DateTimeField("first seen")
     last_seen_date = models.DateTimeField("last seen")
-    def __str__(self):
-        return (self.mac_text)
-
-class Unknown_mac(models.Model):
-    mac_text = models.CharField(max_length=20)
-    mac_inf_text = models.CharField(max_length=100)
-    device_text = models.CharField(max_length=100)
-    first_seen_date = models.DateTimeField("first seen")
-    last_seen_date = models.DateTimeField("last seen")
+    type_int = models.IntegerField(default=0)
     def __str__(self):
         return (self.mac_text)
 
