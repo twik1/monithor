@@ -1,9 +1,8 @@
 from django.shortcuts import render
 from django.forms.models import model_to_dict
 from monithor.maclists import Maclists
-#from monithor.backend import pushover_send
 from monithor.models import Maclist, Source, Notification, Macinfo, Status_msg
-#from monithorsite.wsgi import snmp
+from monithor.snmp import SNMP
 
 
 def settings_view(request):
@@ -18,19 +17,19 @@ def settings_view(request):
             row.community_text = data['community']
             row.interval_int = int(data['interval'])
             row.save()
-            #snmp.fetch_mac()
+            SNMP.fetch_mac(SNMP.get_ip(), SNMP.get_oid(), SNMP.get_community())
         if 'apikey' in data:
             row = Macinfo.objects.first()
             row.token_mac_text = data['apikey']
             row.save()
-            #Umac.get_info_of_mac('5c:aa:fd:9f:b1:38')
+            Maclists.get_info_of_mac('5c:aa:fd:9f:b1:38')
         if 'token' in data:
             print(data)
             row = Notification.objects.first()
             row.token_text = data['token']
             row.user_text = data['user']
             row.save()
-            #pushover_send('test')
+            Maclists.pushover_send("Config test")
         # ToDo test the setting before reloading the page
 
     dsource = model_to_dict(Source.objects.first())

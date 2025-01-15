@@ -24,7 +24,7 @@ class Statusmsg:
         row.save()
 
     @staticmethod
-    def clear_maclookup_msg(msg):
+    def clear_maclookup_msg():
         row = Status_msg.objects.first()
         row.maclookup_text = ""
         row.save()

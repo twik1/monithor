@@ -17,10 +17,10 @@ def threaded(fn):
 class Engine:
     def __init__(self):
         self.running = True
-        self.thread = self.fetch()
         statusmsg = Statusmsg()
         maclists = Maclists()
         snmp = SNMP()
+        self.thread = self.fetch()
 
     @threaded
     def fetch(self):

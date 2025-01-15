@@ -6,11 +6,11 @@ import re
 class SNMP:
     def __init__(self):
         if Source.objects.count() < 1:
-            dsource = {'ip_text': '', 'oid_text': '', 'interval_int': 10, 'community_text': ''}
+            dsource = {'ip_text': '', 'oid_text': '', 'interval_int': 0, 'community_text': ''}
             row = Source(ip_text=dsource['ip_text'], oid_text=dsource['oid_text'], interval_int=dsource['interval_int'],
                          community_text=dsource['community_text'])
             row.save()
-        SNMP.set_interval(10)
+        #SNMP.set_interval(10)
 
     @staticmethod
     def set_ip(ip):
