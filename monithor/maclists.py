@@ -45,6 +45,17 @@ class Maclists:
         row.save()
 
     @staticmethod
+    def dec_counter(mac):
+        row = Maclist.objects.get(mac_text=mac)
+        if row.count_int < 1:
+            #print("setting {} to offline".format(mac))
+            return
+        else:
+            #print("decrementing {}".format(mac))
+            row.count_int -= 1
+            row.save()
+
+    @staticmethod
     def clear_counter(mac):
         row = Maclist.objects.get(mac_text=mac)
         row.count_int = 0
@@ -106,25 +117,38 @@ class Maclists:
     def compare(maclist):
         ''' Start comparing with the known macs '''
         leftover = []
+        #total_mac_storage = []
         known = Maclists.get_known()
         unknown = Maclists.get_unknown()
+        total_mac_storage = known + unknown
         tempmac = ''
+        ''' Check if found macs are in known list'''
         for mac in maclist:
             for item in known:
                 if item.mac_text == mac:
                     Maclists.update_last_seen(mac)
-                    Maclists.set_counter(mac, 3)
+                    if Maclists.get_counter(mac) < 3:
+                        if Maclists.get_counter(mac) < 1:
+                            #print("Set {} to online".format(mac))
+                        Maclists.set_counter(mac, 3)
                     tempmac = mac
                     continue
             if not tempmac:
                 leftover.append(mac)
             tempmac = ''
+        ''' Check if leftover found macs are in unhandled list '''
         for mac in leftover:
             for item in unknown:
                 if item.mac_text == mac:
                     Maclists.update_last_seen(mac)
                     tempmac = mac
                     continue
+            ''' I its an unknown mac add to unhandled and send notification '''
             if not tempmac:
                 Maclists.add_mac(mac, "", "", UNKNOWN_MAC)
+        ''' Decrement the counter for macs not found '''
+        for mac in total_mac_storage:
+            if mac.mac_text not in maclist:
+                Maclists.dec_counter(mac.mac_text)
+
 
