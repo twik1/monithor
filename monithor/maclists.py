@@ -149,6 +149,7 @@ class Maclists:
                 Maclists.add_mac(mac, "", "", UNKNOWN_MAC)
                 if Notification.objects.first().send_bool:
                     Maclists.pushover_send("Unknown mac {} found on network".format(mac))
+            tempmac = ''
         ''' Decrement the counter for macs not found '''
         for mac in total_mac_storage:
             if mac.mac_text not in maclist:
