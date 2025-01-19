@@ -116,6 +116,15 @@
                      </tr>
                  </tbody>
             </table>
+
+            {% if source.send_bool == True %}
+                <input type="checkbox" class="form-check-input" name="sendpush" id="sendpush" checked>
+            {% else %}
+                <input type="checkbox" class="form-check-input" name="sendpush" id="sendpush">
+            {% endif %}
+            <label class="form-check-label">Send pushover for new unknown macs (leave unticked for the first
+                scan if you have multiple macs in your network)</label>
+
             <div class="row" style="padding-top: 1rem">
                 <button type="submit" class="btn btn-success">Save</button>
             </div>

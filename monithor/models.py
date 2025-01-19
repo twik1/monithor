@@ -3,6 +3,7 @@ from django.db import models
 class Notification(models.Model):
     token_text = models.CharField(max_length=50)
     user_text = models.CharField(max_length=50)
+    send_bool = models.BooleanField(default=False)
     def __str__(self):
         return (self.token_text, self.user_text)
 

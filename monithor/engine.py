@@ -38,6 +38,4 @@ class Engine:
                 Statusmsg.clear_snmp_msg()
             ''' Fetching macs and compare to existing'''
             Maclists.compare(SNMP.fetch_mac(SNMP.get_ip(), SNMP.get_oid(), SNMP.get_community()))
-
-
             time.sleep(self.scantime)

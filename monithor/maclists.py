@@ -129,6 +129,7 @@ class Maclists:
                     Maclists.update_last_seen(mac)
                     if Maclists.get_counter(mac) < 3:
                         if Maclists.get_counter(mac) < 1:
+                            None
                             #print("Set {} to online".format(mac))
                         Maclists.set_counter(mac, 3)
                     tempmac = mac
@@ -146,6 +147,8 @@ class Maclists:
             ''' I its an unknown mac add to unhandled and send notification '''
             if not tempmac:
                 Maclists.add_mac(mac, "", "", UNKNOWN_MAC)
+                if Notification.objects.first().send_bool:
+                    Maclists.pushover_send("Unknown mac {} found on network".format(mac))
         ''' Decrement the counter for macs not found '''
         for mac in total_mac_storage:
             if mac.mac_text not in maclist:

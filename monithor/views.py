@@ -28,6 +28,10 @@ def settings_view(request):
             row = Notification.objects.first()
             row.token_text = data['token']
             row.user_text = data['user']
+            if 'sendpush' in data:
+                row.send_bool = True
+            else:
+                row.send_bool = False
             row.save()
             Maclists.pushover_send("Config test")
         # ToDo test the setting before reloading the page
