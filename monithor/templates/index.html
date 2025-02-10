@@ -3,17 +3,17 @@
 {% block content %}
     <form method="post" action="">
     {% csrf_token %}
-    <div class="modal fade" tabindex="-1" role="dialog" id="myModal">
+    <div class="modal fade" tabindex="-1" role="dialog" id="myModal2">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="mac"></h5>
+                    <h5 class="modal-title" id="mac1"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <label for="notes">Name device</label>
-                    <input class="form-control" name="notes" id="notes" type="text">
-                    <input class="form-control" name="id" id="id" type="hidden">
+                    <label for="notes1">Name device</label>
+                    <input class="form-control" name="notes1" id="notes1" type="text">
+                    <input class="form-control" name="id1" id="id1" type="hidden">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -63,7 +63,8 @@
                 <td>{{ row.last_seen_date }}</td>
                 <td>
                     <button class="btn btn-lg" style="background-color:transparent;" data-id="{{ row.id }}"
-                            data-mac="{{ row.mac_text }}">
+                            data-toggle="modal" data-target="#myModal2" data-mac="{{ row.mac_text }}"
+                            data-notes="{{ row.device_text }}">
                         <i class="fa fa-pencil"></i>
                     </button>
                 </td>
@@ -73,14 +74,16 @@
     </table>
 <script>
     //triggered when the modal is about to be shown
-    $('#myModal').on('show.bs.modal', function(e) {
+    $('#myModal2').on('show.bs.modal', function(e) {
         //get data-id attribute of the clicked element
         var Id = $(e.relatedTarget).data('id');
-        var Mac = 'List mac address ' + $(e.relatedTarget).data('mac') + ' as known';
-        //alert(Mac);
+        var Notes = $(e.relatedTarget).data('notes');
+        var Mac = 'Rename mac address ' + $(e.relatedTarget).data('mac');
+        //alert(Notes);
         //populate the textbox
-        $('#mac').text(Mac);
-        $('#id').val(Id);
+        $('#mac1').text(Mac);
+        $('#id1').val(Id);
+        $('#notes1').val(Notes);
      });
 </script>
 {% endblock content %}
