@@ -14,6 +14,12 @@
                     <label for="notes1">Name device</label>
                     <input class="form-control" name="notes1" id="notes1" type="text">
                     <input class="form-control" name="id1" id="id1" type="hidden">
+                    <input class="form-control" name="mac2" id="mac2" type="hidden">
+                    <div class="form-check">
+                        <br>
+                        <input class="form-check-input" type="checkbox" value="" id="macscan", name="macscan">
+                        <label class="form-check-label" for="macscan">Rescan for mac info</label>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -22,6 +28,27 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
+    </form>
+
+    <form method="post" action="">
+    {% csrf_token %}
+    <div class="modal fade" tabindex="-1" role="dialog" id="myModal3">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmation</h5>
+                </div>
+                <div class="modal-body">
+                    <p id="test1">Are you sure you want to delete mac</p>
+                    <input class="form-control" name="mac3" id="mac3" type="hidden">
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success btn-ok">OK</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
     </form>
 
     <h3>Known MAC addresses in your network</h3>
@@ -43,6 +70,7 @@
                 <th>First seen</th>
                 <th>Last seen</th>
                 <th>Edit</th>
+                <th>Delete</th>
             </tr>
         </thead>
         <tbody>
@@ -68,6 +96,10 @@
                         <i class="fa fa-pencil"></i>
                     </button>
                 </td>
+                <td>
+                    <button data-id="{{ row.id }}" data-mac="{{ row.mac_text }}" type="button" class="btn btn-danger"
+                            data-toggle="modal" data-target="#myModal3">Del</button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -75,15 +107,18 @@
 <script>
     //triggered when the modal is about to be shown
     $('#myModal2').on('show.bs.modal', function(e) {
-        //get data-id attribute of the clicked element
         var Id = $(e.relatedTarget).data('id');
         var Notes = $(e.relatedTarget).data('notes');
-        var Mac = 'Rename mac address ' + $(e.relatedTarget).data('mac');
-        //alert(Notes);
-        //populate the textbox
-        $('#mac1').text(Mac);
+        var Mac = $(e.relatedTarget).data('mac');
+        $('#mac1').text('Rename mac address ' + Mac);
+        $('#mac2').val(Mac);
         $('#id1').val(Id);
         $('#notes1').val(Notes);
      });
+    $('#myModal3').on('show.bs.modal', function(e) {
+        var Mac = $(e.relatedTarget).data('mac');
+        $('#test1').text('Are you sure you want to delete mac' + Mac);
+        $('#mac3').val(Mac);
+    });
 </script>
 {% endblock content %}

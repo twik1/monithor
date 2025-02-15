@@ -27,6 +27,10 @@ class Maclists:
         row.save()
 
     @staticmethod
+    def del_mac(mac):
+        Maclist.objects.filter(mac_text=mac).delete()
+
+    @staticmethod
     def change_to_known(id, device):
         row = Maclist.objects.get(id=id)
         row.device_text = device
@@ -65,6 +69,12 @@ class Maclists:
     def update_last_seen(mac):
         row = Maclist.objects.get(mac_text=mac)
         row.last_seen_date = timezone.now()
+        row.save()
+
+    @staticmethod
+    def update_mac_info(mac):
+        row = Maclist.objects.get(mac_text=mac)
+        row.mac_inf_text = Maclists.get_info_of_mac(mac)
         row.save()
 
     @staticmethod

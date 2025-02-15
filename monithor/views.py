@@ -7,7 +7,6 @@ from monithor.snmp import SNMP
 
 def settings_view(request):
     valuedict = {}
-
     if request.method == 'POST':
         data = request.POST
         if 'snmp_address' in data:
@@ -41,13 +40,25 @@ def settings_view(request):
     dmacinf = model_to_dict(Macinfo.objects.first())
     dstatus = model_to_dict(Status_msg.objects.first())
     valuedict = {**dsource, **dnotifi, **dmacinf, **dstatus}
-
     return render(request, 'settings.html', {'source':valuedict})
 
 def about_view(request):
     return render(request, 'about.html')
 
 def index_view(request):
+    if request.method == 'POST':
+        data = request.POST
+        print(data)
+        if 'notes1' in data:
+            notes = data['notes1']
+            id = data['id1']
+            if 'macscan' in data:
+                Maclists.update_mac_info(data['mac2'])
+            # ToDo Add fault handling
+            Maclists.change_to_known(id, notes)
+        if 'mac3' in data:
+            mac = data['mac3']
+            Maclists.del_mac(mac)
     kmaclist = list(Maclists.get_known())
     return render(request, 'index.html', {'kmaclist':kmaclist})
 
